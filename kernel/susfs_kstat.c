@@ -1433,7 +1433,7 @@ static bool susfs_kstat_spoof_statx(struct kstat_call_state *st, unsigned long s
  * the caller's buffer and leaves the return value alone, while the listing filter shortens the count
  * and must hand that back - the tracepoint did it with syscall_set_return_value(), which a wrapper
  * has no regs to do it with. */
-static __nocfi void susfs_kstat_post(long nr, bool compat, const unsigned long *args,
+__nocfi void susfs_kstat_post(long nr, bool compat, const unsigned long *args,
 				     long ret, long *out)
 {
 	struct kstat_call_counters *c;
@@ -2135,7 +2135,10 @@ static struct proc_dir_entry *kstat_proc_entry;
 /* How many of kstat_hooks[] are actually in place: this layer's armed state, and what its log line
  * reports.  The entry tail that used to be registered here is gone - the entries' comment
  * above says why and what it cost. */
-static int kstat_hooks_armed;
+extern int susfs_kp_stat_init(void);
+extern void susfs_kp_stat_exit(void);
+
+int kstat_hooks_armed;
 
 int susfs_kstat_init(void)
 {
@@ -2163,6 +2166,10 @@ int susfs_kstat_init(void)
 		}
 		kstat_hooks_armed++;
 	}
+	/* The sys_call_table path is refused on RKP kernels (Samsung); fall back to kretprobes.
+	 * Count their arming so the feature reports live and the supercall accepts kstat rules. */
+	if (susfs_kp_stat_init() == 0 && kstat_hooks_armed == 0)
+		kstat_hooks_armed = 1;
 	if (!kstat_hooks_armed) {
 		pr_warn("kstat: none of the %u entries could be installed - the stat family and the dirent rewrite stay off\n",
 			(unsigned int)ARRAY_SIZE(kstat_hooks));
@@ -2197,6 +2204,8 @@ int susfs_kstat_init(void)
 void susfs_kstat_exit(void)
 {
 	int i;
+
+	susfs_kp_stat_exit();
 
 	kstat_maps_disarm();
 

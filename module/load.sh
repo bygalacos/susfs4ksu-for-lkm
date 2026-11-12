@@ -114,7 +114,7 @@ dmesg_start() {
 }
 if [ -n "$TIMEOUT_BIN" ]; then
   dmesg_start
-  "$TIMEOUT_BIN" "$LOAD_TIMEOUT" "$MODDIR/bin/susfs_insmod" "$KO" expose_proc=1
+  "$TIMEOUT_BIN" "$LOAD_TIMEOUT" "$MODDIR/bin/susfs_insmod" "$KO" expose_proc=0
   rc=$?
 else
   echo "load failed: no timeout utility for the ${LOAD_TIMEOUT}s module_init limit"

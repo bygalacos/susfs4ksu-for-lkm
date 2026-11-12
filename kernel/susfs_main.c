@@ -42,7 +42,7 @@
  * (susfs_control_node_allowed()), so an unprotected world-writable node cannot happen, and
  * root-only access is enforced by the handlers' uid checks, not by the mode.  expose_proc=0
  * removes the nodes entirely. */
-bool susfs_expose_proc = true;
+bool susfs_expose_proc = false;
 module_param_named(expose_proc, susfs_expose_proc, bool, 0600);
 
 static const char *const susfs_self_hide_paths[] = {
